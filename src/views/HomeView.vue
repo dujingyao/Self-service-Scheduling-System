@@ -19,42 +19,51 @@ function goToFreePlanMode() {
 </script>
 
 <template>
-  <main class="home-container">
-    <h1>欢迎使用！</h1>
-    <p>请选择你要使用的模式：</p>
+  <el-card shadow="never" class="page-card">
+    <main class="home-container">
+      <h1>欢迎使用！</h1>
+      <p>请选择你要使用的模式：</p>
 
-    <div class="button-group">
-      <el-button 
-        type="primary" 
-        size="large"
-        @click="goToShiftMode" 
-      >
-        多人值班模式
-      </el-button>
+      <div class="button-group">
+        <el-button 
+          type="primary" 
+          size="large"
+          @click="goToShiftMode" 
+        >
+          多人值班模式
+        </el-button>
 
-      <el-button 
-        type="success" 
-        size="large"
-        @click="goToFreePlanMode"
-      >
-        空闲规划模式
-      </el-button>
-    </div>
-  </main>
+        <el-button 
+          type="success" 
+          size="large"
+          @click="goToFreePlanMode"
+        >
+          空闲规划模式
+        </el-button>
+      </div>
+    </main>
+  </el-card>
 </template>
 
+/* HomeView.vue 的 */
 <style scoped>
-/* 这是我们的 CSS (外观) */
+/* 【新增】卡片居中 */
+.page-card {
+  max-width: 600px;
+  margin: 20px auto; /* 顶部 20px，左右自动 (居中) */
+}
+
+/* 【修改】
+  我们删掉了 .home-container 上的 margin-top
+*/
 .home-container {
   text-align: center; /* 文字居中 */
-  margin-top: 60px; /* 距离顶部一点距离 */
 }
 
 .button-group {
-  margin-top: 20px; /* 按钮组距离上面文字一点距离 */
+  margin-top: 20px;
 }
 
-/* 让按钮之间有一点空隙 */
 .button-group .el-button {
   margin: 10px;
 }

@@ -1,6 +1,6 @@
 // --- 复制开始 ---
 import { createRouter, createWebHistory } from 'vue-router'
-
+import MemberRegister from '../views/shift/MemberRegister.vue'
 // 导入我们的“主页”
 import HomeView from '../views/HomeView.vue'
 // 导入我们【刚刚创建】的“角色选择页”
@@ -39,16 +39,23 @@ const router = createRouter({
       component: MemberJoin
     },
     {
-  // 看这里！:captainCode 
-  // 这个冒号 : 告诉 VUE，这个部分是“动态”的
-  // 它可以匹配 /captain/dashboard/ABCD12
-  // 也可以匹配 /captain/dashboard/XYZ987
-  path: '/shift/captain/dashboard/:captainCode',
-  name: 'CaptainDashboard',
-  component: CaptainDashboard,
-  // props: true 能让我们更方便地在组件里接收 captainCode
-  props: true 
-}
+    // 看这里！:captainCode 
+    // 这个冒号 : 告诉 VUE，这个部分是“动态”的
+    // 它可以匹配 /captain/dashboard/ABCD12
+    // 也可以匹配 /captain/dashboard/XYZ987
+    path: '/shift/captain/dashboard/:captainCode',
+    name: 'CaptainDashboard',
+    component: CaptainDashboard,
+    // props: true 能让我们更方便地在组件里接收 captainCode
+    props: true 
+    },
+    {
+      // 网址会是 /shift/member/register/ABCD12 这样的
+      path: '/shift/member/register/:captainCode',
+      name: 'MemberRegister',
+      component: MemberRegister,
+      props: true
+    }
   ]
 })
 
