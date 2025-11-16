@@ -2,8 +2,9 @@
 import { useRouter } from 'vue-router'
 const router = useRouter()
 
+// (V2.3 新的)
 function goToCaptainCreate() {
-  router.push({ name: 'CaptainCreate' })
+  router.push({ name: 'CaptainHome' }) // <-- 核心修改！
 }
 
 function goToMemberJoin() {

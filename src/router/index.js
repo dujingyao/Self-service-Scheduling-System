@@ -7,6 +7,8 @@ import CaptainCreate from '../views/shift/CaptainCreate.vue'
 import CaptainDashboard from '../views/shift/CaptainDashboard.vue'
 import MemberJoin from '../views/shift/MemberJoin.vue'
 import MemberRegister from '../views/shift/MemberRegister.vue'
+import FreePlanHome from '../views/free-plan/FreePlanHome.vue'
+import CaptainHome from '../views/shift/CaptainHome.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,6 +47,16 @@ const router = createRouter({
       name: 'MemberRegister',
       component: MemberRegister,
       props: true
+    },
+    {
+      path: '/free-plan',
+      name: 'FreePlanHome',
+      component: FreePlanHome
+    },
+    {
+      path: '/shift/captain/home',
+      name: 'CaptainHome',
+      component: CaptainHome
     }
   ]
 })

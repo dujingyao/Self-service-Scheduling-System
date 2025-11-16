@@ -7,7 +7,8 @@ function goToShiftMode() {
 }
 
 function goToFreePlanMode() {
-  alert('空闲规划模式 待开发...')
+  // 告诉“导航仪”去我们新登记的页面
+  router.push({ name: 'FreePlanHome' })
 }
 </script>
 
