@@ -16,7 +16,7 @@ function goToHome() {
     <el-header class="app-header">
       <div class="header-content">
         <span class="app-title">智能排班助手</span>
-
+        
         <el-button 
           type="primary" 
           :icon="House" 
@@ -42,11 +42,8 @@ function goToHome() {
 .app-header {
   background-color: #ffffff;
   border-bottom: 1px solid #e4e7ed;
-  /* 使用 Flex 布局
-    让标题在左边，按钮在右边
-  */
   display: flex;
-  align-items: center; /* 垂直居中 */
+  align-items: center;
   padding: 0 40px;
 }
 
@@ -62,9 +59,7 @@ function goToHome() {
   font-weight: 600;
 }
 
-/* 内容区样式
-  我们给了一个浅灰色的背景
-*/
+/* 内容区样式 */
 .app-main {
   background-color: #f4f6f9;
   height: 100%;
