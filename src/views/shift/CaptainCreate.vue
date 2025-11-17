@@ -2,31 +2,32 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Plus } from '@element-plus/icons-vue'
+// 【【 V2.4 核心：导入 Axios 】】
+import axios from 'axios'
 
 const router = useRouter()
 
-// --- V2.0 模板状态 (无变化) ---
+// --- 模板状态 (无变化) ---
 const isTemplateUploaded = ref(false)
 const isTemplateUploading = ref(false)
 const totalSlots = ref(0)
 const days = ref(['周一', '周二', '周三', '周四', '周五', '周六', '周日'])
 
-// --- 【【 V2.2 核心：两种约束并存 】】 ---
-
-// 1. (新) 时段约束 (Rule A)
-const slotRequirements = ref({}) // { "0-1": 2, "1-5": 3 }
-const capacityMode = ref('fixed') // 'fixed' 或 'dynamic'
+// --- V2.2 约束 (无变化) ---
+const slotRequirements = ref({})
+const capacityMode = ref('fixed')
 const fixedCapacity = ref(1)
-
-// 2. (加回来!) 队员约束 (Rule B)
 const minShifts = ref(0)
 const maxShifts = ref(1)
 
 /**
- * 【V2.0】处理课表模板上传 (无变化)
+ * 模板上传 (无变化，但我们把它也改成 Axios)
  */
-function handleTemplateUpload(options) {
+async function handleTemplateUpload(options) {
   isTemplateUploading.value = true
+  
+  // (我们也可以“假装”用 Axios 上传，但为了简单，
+  // 我们先保留这里的 setTimeout，它不影响我们学 POST)
   setTimeout(() => {
     const fakeTemplateResponse = {
       totalSlots: 10
@@ -37,23 +38,18 @@ function handleTemplateUpload(options) {
   }, 1500)
 }
 
-/**
- * 【V2.1】格子交互逻辑 (无变化)
- */
+// --- 格子交互 (无变化) ---
 function toggleSlot(dayIndex, slotIndex) {
   const slotId = `${dayIndex}-${slotIndex}`
-  
   if (capacityMode.value === 'fixed') {
     if (slotRequirements.value[slotId]) {
       delete slotRequirements.value[slotId]
     } else {
       slotRequirements.value[slotId] = fixedCapacity.value
     }
-  } 
-  else {
+  } else {
     let currentCapacity = slotRequirements.value[slotId] || 0
     currentCapacity = (currentCapacity + 1) % 4
-    
     if (currentCapacity === 0) {
       delete slotRequirements.value[slotId]
     } else {
@@ -61,10 +57,6 @@ function toggleSlot(dayIndex, slotIndex) {
     }
   }
 }
-
-/**
- * 【V2.1】格子辅助函数 (无变化)
- */
 function getSlotText(dayIndex, slotIndex) {
   const slotId = `${dayIndex}-${slotIndex}`
   return slotRequirements.value[slotId] || ''
@@ -75,38 +67,73 @@ function isSlotSelected(dayIndex, slotIndex) {
 }
 
 /**
- * 【【 V2.2 核心重构：最终提交逻辑 】】
+ * 【【 V2.4 核心重构：handleGenerate (POST) 】】
  */
-function handleGenerate() {
+async function handleGenerate() {
   if (Object.keys(slotRequirements.value).length === 0) {
     alert('请至少选择一个需要值班的时间段！')
     return
   }
 
-  // 【 V2.2 】打包“所有”约束
+  // 1. 准备 V2.2 终极数据 (无变化)
   const dataToSend = {
-    // 1. 模板信息
     totalSlots: totalSlots.value,
-    
-    // 2. 时段约束 (Rule A)
     slotRequirements: slotRequirements.value,
-    
-    // 3. 队员约束 (Rule B)
     memberConstraints: {
       min: minShifts.value,
       max: maxShifts.value
     }
   }
 
-  console.log('--- V2.2 正在假装发送最终数据给后端 ---', dataToSend)
-  alert('正在生成队长码... (模拟网络请求)')
-  setTimeout(() => {
-    const fakeCaptainCode = 'ABCD12'
+  // === (旧的“假装”逻辑已被删除) ===
+  // console.log(...)
+  // alert(...)
+  // setTimeout(() => { ... })
+  
+  // === 【【 V2.4 真实 POST 请求 】】 ===
+  console.log(`--- 正在向后端 API 发起真实 POST 请求: /api/plan/create ---`)
+  console.log('--- 携带的数据 (Payload):', dataToSend)
+  
+  try {
+    // 1. 我们“尝试” (try) 呼叫这个 POST API
+    //    (这对应我们“API对接文档”里的 2.1 节)
+    //    (Axios 会自动把 dataToSend 转成 JSON 字符串)
+    const response = await axios.post('/api/plan/create', dataToSend)
+    
+    // --- (A) 如果呼叫“成功” (将来后端做好了) ---
+    // (将来后端会返回: response.data.captainCode)
+    const captainCode = response.data.captainCode 
+    
+    console.log('--- API 创建成功，后端返回:', captainCode)
     router.push({ 
       name: 'CaptainDashboard',
-      params: { captainCode: fakeCaptainCode }
+      params: { captainCode: captainCode }
     })
-  }, 1000)
+
+  } catch (error) {
+    // --- (B) 如果呼叫“失败” (我们现在 100% 会进入这里) ---
+    
+    console.error('--- API POST 失败 (连接被拒绝) ---', error)
+    
+    // 【【 这就是我们现在的“新假装”逻辑 】】
+    // (我们不再检查 ABCD12 了，因为这是创建，无码可查)
+    // (我们只检查是不是“连接失败”)
+    if (error.code === "ERR_NETWORK" || error.response?.status === 404) {
+      // 那么我们就“假装”它成功了，并返回一个“假”码
+      console.log('--- 捕获到 404/失败，启动“假装”模式 ---')
+      
+      const fakeCaptainCode = 'ABCD12' // 假装后端返回了这个码
+      
+      router.push({ 
+        name: 'CaptainDashboard',
+        params: { captainCode: fakeCaptainCode }
+      })
+      
+    } else {
+      // 如果是其他错误 (比如 500)
+      alert('创建失败，服务器内部错误！')
+    }
+  }
 }
 </script>
 
@@ -119,7 +146,6 @@ function handleGenerate() {
         为了统一所有人的课表结构，请先上传一张本学期（或本次排班）的**课表示例图**。
       </p>
       <el-divider />
-      
       <el-upload
         class="template-uploader"
         drag
@@ -138,7 +164,6 @@ function handleGenerate() {
           </div>
         </template>
       </el-upload>
-      
       <div v-if="isTemplateUploading" class="uploading-mask">
         <el-progress 
           :percentage="100" 
@@ -153,14 +178,12 @@ function handleGenerate() {
     </div>
 
     <el-row :gutter="30" v-if="isTemplateUploaded">
-      
       <el-col :span="9">
         <h1>队长：创建值班</h1>
         <p class="description">模板识别成功！总共 {{ totalSlots }} 节课。</p>
         
         <el-divider />
         <h2>1. 时段约束 (每时段)</h2>
-        
         <el-form label-width="120px" class="form-section">
           <el-form-item label="人数模式">
             <el-radio-group v-model="capacityMode">
@@ -168,12 +191,10 @@ function handleGenerate() {
               <el-radio-button label="dynamic">动态人数</el-radio-button>
             </el-radio-group>
           </el-form-item>
-          
           <el-form-item label="每时段人数" v-if="capacityMode === 'fixed'">
             <el-input-number v-model="fixedCapacity" :min="1" :max="10" />
             <span> 人</span>
           </el-form-item>
-          
           <el-form-item label="" v-if="capacityMode === 'dynamic'">
             <p class="description">
               请在右侧表格中**直接点击**格子。
@@ -185,7 +206,6 @@ function handleGenerate() {
         
         <el-divider />
         <h2>2. 队员约束 (每人)</h2>
-        
         <el-form label-width="120px" class="form-section">
           <el-form-item label="每人至少值班">
             <el-input-number v-model="minShifts" :min="0" />
@@ -199,7 +219,6 @@ function handleGenerate() {
         
         <el-divider />
         <h2>3. 生成队长码</h2>
-        
         <el-button 
           type="primary" 
           size="large"
@@ -212,13 +231,11 @@ function handleGenerate() {
 
       <el-col :span="15">
         <h2>请选择值班时间段</h2>
-        
         <div class="schedule-grid">
           <div class="header-cell"></div>
           <div v-for="day in days" :key="day" class="header-cell">
             {{ day }}
           </div>
-    
           <template v-for="slotIndex in totalSlots" :key="slotIndex">
             <div class="header-cell">第 {{ slotIndex }} 节</div>
             <div 
@@ -233,13 +250,13 @@ function handleGenerate() {
           </template>
         </div>
       </el-col>
-      
     </el-row>
   </el-card>
 </template>
 
 <style scoped>
-/* (所有样式都和 V2.1 一样，无需修改！) */
+/* (Style 样式部分和 V2.3 完全一样，为简洁省略) */
+/* (你无需修改 <style> 里的任何东西) */
 .page-card {
   max-width: 1400px;
   margin: 20px auto;
